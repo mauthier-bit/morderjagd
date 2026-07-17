@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0E1422">
+<title>Die Mörderjagd – Der Fall von Auffberg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DIE MÖRDERJAGD · Design-Tokens
+   Film-noir: Mitternachtsblau + Akten-Gold + Spuren-Petrol
+   ============================================================ */
+:root{
+  --nacht-1:#0E1422;          /* Hintergrund tief   */
+  --nacht-2:#141C2E;          /* Hintergrund oben   */
+  --bg-glow:#1C2742;          /* Schein oben im BG  */
+  --stein:#1A2336;            /* Kartenfläche       */
+  --stein-2:#212C44;          /* Karte erhöht       */
+  --linie:#2C3855;            /* Rahmen / Trenner   */
+  --gold:#E0A33E;             /* Akten-Gold (Indiz) */
+  --gold-hell:#F2C264;
+  --salzach:#36A8A0;          /* Spuren-Petrol      */
+  --salzach-hell:#5FCFC6;
+  --violett:#8E82DC;          /* Köpfchen           */
+  --koralle:#E37A55;          /* Bewegung           */
+  --gruen:#5FB87A;            /* gesichert          */
+  --blut:#D8584A;             /* Verdacht / raus    */
+  --text:#EAEDF5;             /* Haupttext          */
+  --text-leise:#9AA6BF;       /* Nebentext          */
+  --text-stumm:#67738C;       /* sehr leise         */
+  --pergament:#ECE2CC;        /* Akten-Papier       */
+  --pergament-tief:#D8C9A6;
+  --radius:18px;
+  --radius-s:12px;
+  --schatten:0 18px 40px -18px rgba(0,0,0,.7);
+  --ff-display:"Fraunces",Georgia,"Times New Roman",serif;
+  --ff-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --ff-mono:"Space Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--ff-body);
+  color:var(--text);
+  background:var(--nacht-1);
+  background-image:radial-gradient(120% 80% at 50% -10%, var(--bg-glow) 0%, var(--nacht-2) 38%, var(--nacht-1) 78%);
+  background-attachment:fixed;
+  min-height:100vh;min-height:100dvh;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  transition:background-color .3s ease, color .3s ease;
+}
+
+/* ---- Heller Modus: warmes Akten-Papier ---- */
+body.hell{
+  --nacht-1:#EDE7DA;
+  --nacht-2:#F5F0E6;
+  --bg-glow:#FFFDF7;
+  --stein:#FBF7EE;
+  --stein-2:#FFFFFF;
+  --linie:#D9CEB9;
+  --gold:#A9741A;
+  --gold-hell:#B98A28;
+  --salzach:#1E837B;
+  --salzach-hell:#227F78;
+  --violett:#5E52B8;
+  --koralle:#C0532F;
+  --gruen:#3B8E5A;
+  --blut:#BF3A2D;
+  --text:#241E14;
+  --text-leise:#6C6353;
+  --text-stumm:#9C927E;
+}
+body.hell .kamm{opacity:.16}
+
+/* Nächtliche Stadt-Silhouette am unteren Rand */
+.kamm{
+  position:fixed;left:0;right:0;bottom:0;height:130px;z-index:0;
+  pointer-events:none;opacity:.5;
+}
+.kamm svg{display:block;width:100%;height:100%}
+
+.huelle{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:0 16px 120px;}
+
+/* ============================================================  HEADER  */
+.kopf{
+  position:sticky;top:0;z-index:20;
+  margin:0 -16px 18px;padding:10px 16px 12px;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--nacht-1) 96%, transparent), color-mix(in srgb, var(--nacht-1) 84%, transparent) 70%, transparent);
+  backdrop-filter:blur(8px);
+}
+.kopf-zeile{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.kopf-titel{font-family:var(--ff-display);font-weight:900;font-size:15px;letter-spacing:.5px}
+.kopf-titel b{color:var(--gold)}
+.fortschritt-zahl{font-family:var(--ff-mono);font-size:11px;color:var(--text-leise);letter-spacing:.5px}
+
+/* Verdächtigen-Leiste (Signatur) */
+.tracker{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;cursor:pointer}
+.vchip{
+  position:relative;
+  font-family:var(--ff-mono);font-weight:700;font-size:11px;letter-spacing:.3px;
+  padding:7px 8px;border-radius:8px;
+  background:var(--stein);border:1px solid var(--linie);color:var(--text-leise);
+  transition:transform .15s ease, opacity .3s ease;
+}
+.vchip.raus{
+  color:var(--text-stumm);border-color:transparent;background:rgba(216,88,74,.07);
+  text-decoration:line-through;text-decoration-color:var(--blut);text-decoration-thickness:2px;
+  opacity:.55;
+}
+.vchip.taeter{
+  color:#1A1306;background:linear-gradient(160deg,var(--gold-hell),var(--gold));
+  border-color:var(--gold);box-shadow:0 4px 14px -4px rgba(224,163,62,.6);text-decoration:none;opacity:1;
+}
+.kopf-akte{display:block;text-align:center;font-family:var(--ff-mono);font-size:9.5px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--text-stumm);margin-top:7px}
+@keyframes streich{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.12) rotate(-2deg)}
+  100%{transform:scale(1)}
+}
+.vchip.frisch{animation:streich .5s cubic-bezier(.2,1.4,.5,1) both}
+
+/* ============================================================  KARTEN  */
+.szene{animation:auf .45s ease both}
+@keyframes auf{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.karte{
+  background:linear-gradient(180deg,var(--stein-2),var(--stein));
+  border:1px solid var(--linie);border-radius:var(--radius);
+  box-shadow:var(--schatten);padding:22px 20px;position:relative;overflow:hidden;
+}
+.karte::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--akzent,var(--gold))}
+
+.badge-zeile{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.badge{
+  font-family:var(--ff-mono);font-size:10.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;
+  padding:5px 10px;border-radius:999px;color:var(--akzent,var(--gold));
+  background:color-mix(in srgb, var(--akzent,var(--gold)) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--akzent,var(--gold)) 36%, transparent);
+}
+.st-nr{font-family:var(--ff-mono);font-size:11px;color:var(--text-stumm);margin-left:auto;letter-spacing:1px}
+
+.st-titel{font-family:var(--ff-display);font-weight:600;font-size:27px;line-height:1.12;margin:0 0 12px;letter-spacing:-.3px}
+.st-text{color:var(--text);font-size:16px;margin:0 0 4px}
+.st-text + .st-text{margin-top:10px}
+.leise{color:var(--text-leise);font-size:14.5px}
+.kursiv{font-style:italic;color:var(--text-leise)}
+.code-zeile{font-family:var(--ff-mono);font-size:21px;letter-spacing:5px;color:var(--gold-hell);text-align:center;margin:6px 0 2px}
+
+/* Eingabe */
+.eingabe-block{margin-top:20px}
+.eingabe-reihe{display:flex;gap:9px}
+input.feld{
+  flex:1;min-width:0;font-family:var(--ff-mono);font-size:17px;
+  padding:14px 14px;border-radius:var(--radius-s);
+  background:var(--nacht-1);border:1.5px solid var(--linie);color:var(--text);
+  letter-spacing:1px;
+}
+input.feld::placeholder{color:var(--text-stumm);letter-spacing:.5px}
+input.feld:focus{outline:none;border-color:var(--akzent,var(--gold));box-shadow:0 0 0 3px color-mix(in srgb,var(--akzent,var(--gold)) 22%,transparent)}
+input.feld.zittern{animation:zittern .4s}
+@keyframes zittern{0%,100%{transform:none}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+
+/* Reihenfolge-Puzzle */
+.reihe-liste{margin-top:20px;display:flex;flex-direction:column;gap:8px}
+.reihe-karte{
+  display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:var(--radius-s);
+  background:var(--stein);border:1px solid var(--linie);animation:auf .28s ease both;
+}
+.reihe-nr{font-family:var(--ff-mono);font-weight:700;font-size:14px;color:var(--gold);width:22px;flex:none;text-align:center}
+.reihe-text{flex:1;min-width:0;font-size:14px;color:var(--text);line-height:1.4}
+.reihe-move{display:flex;flex-direction:column;gap:5px;flex:none}
+.reihe-move button{width:36px;height:27px;border-radius:7px;background:var(--stein-2);border:1px solid var(--linie);
+  color:var(--text-leise);font-size:13px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
+.reihe-move button:disabled{opacity:.28;cursor:default}
+.reihe-move button:active{transform:scale(.94)}
+
+/* Buttons */
+button{font-family:var(--ff-body);cursor:pointer;border:none}
+.btn{
+  font-weight:700;font-size:16px;padding:14px 18px;border-radius:var(--radius-s);
+  background:linear-gradient(160deg,var(--gold-hell),var(--gold));color:#221705;
+  box-shadow:0 8px 20px -8px rgba(224,163,62,.7);transition:transform .1s, filter .15s;
+}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn:disabled{opacity:.5;filter:grayscale(.4);cursor:default}
+.btn.voll{width:100%}
+.btn.akz{background:linear-gradient(160deg,var(--akzent,var(--gold)),color-mix(in srgb,var(--akzent,var(--gold)) 70%, #000));color:#fff;box-shadow:0 8px 20px -8px color-mix(in srgb,var(--akzent,var(--gold)) 70%, transparent)}
+.btn.geist{background:transparent;border:1.5px solid var(--linie);color:var(--text-leise);box-shadow:none;font-weight:600}
+.btn-pruef{padding:14px 16px;white-space:nowrap}
+
+/* Hinweise */
+.hinweise{margin-top:18px;border-top:1px dashed var(--linie);padding-top:16px}
+.hinweis-knoepfe{display:flex;gap:8px;flex-wrap:wrap}
+.h-btn{
+  font-family:var(--ff-mono);font-size:12px;font-weight:700;letter-spacing:.5px;
+  padding:9px 13px;border-radius:999px;background:transparent;color:var(--text-leise);
+  border:1px solid var(--linie);
+}
+.h-btn:disabled{opacity:.4;cursor:default}
+.h-text{
+  margin-top:12px;padding:13px 15px;border-radius:var(--radius-s);
+  background:color-mix(in srgb, var(--violett) 12%, transparent);border:1px solid color-mix(in srgb, var(--violett) 34%, transparent);
+  color:var(--text);font-size:14.5px;animation:auf .3s ease both;
+}
+.h-text b{color:var(--violett)}
+
+/* Indiz-Banner (Erfolg) */
+.erfolg{
+  margin-top:18px;padding:15px 16px;border-radius:var(--radius-s);
+  background:color-mix(in srgb, var(--gold) 12%, transparent);border:1px solid color-mix(in srgb, var(--gold) 36%, transparent);
+  animation:auf .35s ease both;
+}
+.erfolg .e-zeile{display:flex;align-items:center;gap:9px;font-weight:700;color:var(--gold-hell);font-size:14px;margin-bottom:6px}
+.erfolg .e-text{color:var(--text);font-size:15px}
+.erfolg .e-raus{margin-top:11px;font-size:13.5px;color:var(--text-leise)}
+.erfolg .e-raus b{color:var(--blut)}
+.erfolg .e-bleibt{margin-top:4px;font-size:13.5px;color:var(--salzach-hell)}
+
+/* GPS */
+.gps-box{
+  margin-top:20px;padding:18px;border-radius:var(--radius-s);
+  background:var(--nacht-1);border:1px solid var(--linie);text-align:center;
+}
+.gps-dist{font-family:var(--ff-mono);font-weight:700;font-size:40px;line-height:1;color:var(--salzach-hell);letter-spacing:-1px}
+.gps-einheit{font-family:var(--ff-mono);font-size:15px;color:var(--text-leise)}
+.gps-richtung{margin-top:10px;font-size:14.5px;color:var(--text-leise)}
+.gps-richtung b{color:var(--salzach-hell)}
+.gps-temp{margin-top:6px;font-size:13px;font-family:var(--ff-mono);letter-spacing:.5px}
+.gps-temp.warm{color:var(--koralle)}
+.gps-temp.kalt{color:var(--salzach-hell)}
+.gps-balken{height:7px;border-radius:99px;background:var(--linie);margin:16px 0 4px;overflow:hidden}
+.gps-balken > span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--salzach),var(--salzach-hell));transition:width .5s ease;width:0}
+.gps-status{margin-top:14px;font-size:13.5px;color:var(--text-leise)}
+.gps-fehler{margin-top:14px;padding:12px 14px;border-radius:10px;background:color-mix(in srgb, var(--koralle) 14%, transparent);border:1px solid color-mix(in srgb, var(--koralle) 36%, transparent);color:var(--text);font-size:13.5px}
+.gps-da{
+  margin-top:6px;padding:18px;border-radius:var(--radius-s);text-align:center;
+  background:linear-gradient(160deg,rgba(54,168,160,.18),rgba(54,168,160,.06));
+  border:1px solid rgba(54,168,160,.4);animation:auf .4s ease both;
+}
+.gps-da .da-gross{font-family:var(--ff-display);font-weight:900;font-size:22px;color:var(--salzach-hell)}
+.raetsel-hinweis{font-size:15.5px;color:var(--text);text-align:left;line-height:1.5}
+.raetsel-hinweis b{color:var(--salzach-hell);font-family:var(--ff-display);font-style:italic;font-size:17px}
+.auswahl-liste{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+.auswahl-opt{width:100%;font-weight:700}
+.auswahl-opt.falsch{border-color:var(--blut);color:var(--blut);opacity:.65;text-decoration:line-through}
+.gps-ziel-fix{font-family:var(--ff-mono);font-size:13px;color:var(--gruen);text-align:center;margin-bottom:12px;letter-spacing:.3px}
+
+/* Verdächtigen-Karten (Intro & Akte) */
+.verd-liste{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+.verd-karte{
+  display:flex;gap:12px;align-items:flex-start;padding:12px 13px;border-radius:var(--radius-s);
+  background:var(--stein);border:1px solid var(--linie);text-align:left;
+}
+.verd-karte.raus{opacity:.5}
+.verd-karte.raus .vk-name{text-decoration:line-through;text-decoration-color:var(--blut)}
+.verd-karte.bleibt{border-color:var(--gold);background:rgba(224,163,62,.08)}
+.vk-avatar{width:38px;height:38px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;
+  font-family:var(--ff-mono);font-weight:700;font-size:14px;background:var(--stein-2);border:1px solid var(--linie);color:var(--text-leise)}
+.verd-karte.bleibt .vk-avatar{background:linear-gradient(160deg,var(--gold-hell),var(--gold));color:#1A1306;border-color:var(--gold)}
+.vk-text{flex:1;min-width:0}
+.vk-name{font-weight:700;font-size:15px;color:var(--text)}
+.vk-rolle{font-size:12.5px;color:var(--gold-hell);font-family:var(--ff-mono);letter-spacing:.3px;margin-top:1px}
+.vk-merkmal{font-size:13px;color:var(--text-leise);margin-top:4px}
+
+/* Intro */
+.intro{text-align:center;padding-top:34px;animation:auf .6s ease both}
+.intro .augenbraue{font-family:var(--ff-mono);font-size:11.5px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:18px}
+.intro h1{font-family:var(--ff-display);font-weight:900;font-size:clamp(42px,13vw,66px);line-height:.92;margin:0;letter-spacing:-1px}
+.intro h1 .z2{display:block;color:var(--gold);font-style:italic;font-weight:600}
+.intro .unter{margin:16px auto 0;max-width:400px;color:var(--text-leise);font-size:15.5px}
+.intro .wer{margin-top:8px;font-family:var(--ff-mono);font-size:13px;color:var(--salzach-hell);letter-spacing:.5px}
+.intro-narr{
+  margin:26px auto 22px;max-width:440px;text-align:left;
+  background:var(--stein);border:1px solid var(--linie);border-left:3px solid var(--gold);
+  border-radius:var(--radius-s);padding:18px 20px;color:var(--text);font-size:15px;
+}
+.intro-narr .akten-kopf{font-family:var(--ff-mono);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.intro-abschnitt{max-width:440px;margin:0 auto 22px;text-align:left}
+.intro-abschnitt > h3{font-family:var(--ff-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-leise);margin:0 0 10px;text-align:center}
+.intro-meta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:24px 0 26px;font-size:12.5px;color:var(--text-leise)}
+.intro-meta span{display:inline-flex;align-items:center;gap:6px}
+
+/* Anklage */
+.anklage-hinweis{margin-top:16px;padding:13px 15px;border-radius:var(--radius-s);background:color-mix(in srgb, var(--gold) 10%, transparent);
+  border:1px solid color-mix(in srgb, var(--gold) 32%, transparent);font-size:14px;color:var(--text)}
+
+/* Finale */
+.finale{text-align:center;padding-top:24px;animation:auf .6s ease both}
+.rolle{
+  position:relative;margin:8px auto 0;max-width:440px;
+  background:linear-gradient(175deg,var(--pergament),var(--pergament-tief));
+  color:#2A2114;border-radius:14px;padding:30px 26px;text-align:left;
+  box-shadow:0 20px 50px -16px rgba(0,0,0,.7);
+}
+.rolle .siegel{font-family:var(--ff-mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#8A6A2E;text-align:center}
+.rolle h2{font-family:var(--ff-display);font-weight:900;font-size:30px;margin:10px 0 4px;color:#3A2C10;text-align:center}
+.rolle .taeter-name{
+  font-family:var(--ff-mono);font-weight:700;font-size:26px;letter-spacing:3px;text-align:center;
+  color:#7A3018;margin:16px 0;padding:14px;border-top:1.5px solid rgba(122,90,30,.3);border-bottom:1.5px solid rgba(122,90,30,.3);
+}
+.rolle .aufl{font-size:15px;line-height:1.55;color:#3A2C18;margin:0 0 12px}
+.rolle .aufl b{color:#5A3F12}
+.rolle .schatz{font-size:16px;line-height:1.5;color:#2A2114;margin-top:18px;padding-top:16px;border-top:1.5px dashed rgba(122,90,30,.35)}
+.rolle .schatz b{color:#5A3F12}
+.konfetti{position:fixed;inset:0;z-index:50;pointer-events:none}
+
+/* Akte-Modal */
+.akte-indiz{padding:11px 13px;border-radius:10px;background:var(--stein);border:1px solid var(--linie);margin-bottom:8px}
+.akte-indiz .ai-nr{font-family:var(--ff-mono);font-size:10px;letter-spacing:1px;color:var(--gold);text-transform:uppercase}
+.akte-indiz .ai-text{font-size:13.5px;color:var(--text);margin-top:3px}
+.akte-leer{color:var(--text-leise);font-size:13.5px}
+
+/* Eltern-Modus */
+.fuss{margin-top:40px;text-align:center}
+.fuss-link{font-family:var(--ff-mono);font-size:11px;color:var(--text-stumm);letter-spacing:1px;background:none;border:none;cursor:pointer;padding:8px}
+.modal-hg{position:fixed;inset:0;z-index:60;background:rgba(6,9,16,.78);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;animation:auf .25s ease both}
+.modal{
+  width:100%;max-width:560px;max-height:88vh;overflow-y:auto;
+  background:var(--nacht-2);border:1px solid var(--linie);border-radius:20px 20px 0 0;
+  padding:20px 18px 30px;
+}
+.modal h3{font-family:var(--ff-display);font-weight:600;font-size:21px;margin:4px 0 4px}
+.modal .m-leise{color:var(--text-leise);font-size:13px;margin-bottom:16px}
+.eltern-feld{display:flex;gap:8px;margin:14px 0}
+.eltern-abschnitt{border-top:1px solid var(--linie);padding-top:16px;margin-top:16px}
+.eltern-abschnitt h4{font-family:var(--ff-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin:0 0 12px}
+.gps-zeile{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;background:var(--stein);border:1px solid var(--linie);margin-bottom:9px}
+.gps-zeile .gz-name{flex:1;min-width:0;font-size:13.5px}
+.gps-zeile .gz-koord{font-family:var(--ff-mono);font-size:11px;color:var(--text-leise);display:block;margin-top:2px}
+.gz-eigen{color:var(--salzach-hell)!important}
+.mini{font-size:12px;font-weight:700;padding:9px 11px;border-radius:9px;background:var(--salzach);color:#06201E;white-space:nowrap}
+.sprung-gitter{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.sprung-gitter button{padding:11px 0;border-radius:9px;background:var(--stein);border:1px solid var(--linie);color:var(--text-leise);font-family:var(--ff-mono);font-size:13px;font-weight:700}
+.sprung-gitter button.aktiv{background:var(--gold);color:#221705;border-color:var(--gold)}
+.modal .reihe2{display:flex;gap:9px;margin-top:8px}
+.modal .reihe2 .btn{flex:1}
+.gefahr{background:linear-gradient(160deg,#E0664E,#B84634)!important;color:#fff!important;box-shadow:none!important}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;background:var(--stein-2);border:1px solid var(--linie);color:var(--text);padding:12px 18px;border-radius:999px;font-size:13.5px;box-shadow:var(--schatten);animation:auf .3s ease both;max-width:90%;text-align:center}
+
+.theme-toggle{
+  position:fixed;right:15px;bottom:16px;z-index:40;
+  width:46px;height:46px;border-radius:50%;
+  background:var(--stein-2);border:1px solid var(--linie);color:var(--text);
+  font-size:20px;line-height:1;box-shadow:var(--schatten);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .12s ease, background-color .3s ease, color .3s ease;
+}
+.theme-toggle:active{transform:scale(.92)}
+
+@media (max-width:360px){
+  .vchip{font-size:10px;padding:6px 6px}
+  .st-titel{font-size:24px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+:focus-visible{outline:2px solid var(--gold-hell);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div class="kamm" aria-hidden="true">
+  <svg viewBox="0 0 560 130" preserveAspectRatio="none">
+    <path fill="#0A0F1A" d="M0,130 L0,92 L26,92 L26,70 L40,70 L40,92 L66,92 L66,56 L74,56 L74,48 L82,48 L82,56 L90,56 L90,92 L120,92 L120,40 L150,40 L150,30 L150,40 L172,40 L172,92 L200,92 L200,64 L214,64 L214,92 L246,92 L246,34 L254,34 L254,24 L262,24 L262,34 L290,34 L290,92 L320,92 L320,58 L334,58 L334,92 L360,92 L360,46 L368,46 L368,38 L376,38 L376,46 L402,46 L402,92 L432,92 L432,68 L446,68 L446,92 L474,92 L474,50 L482,42 L490,50 L490,92 L520,92 L520,74 L534,74 L534,62 L542,62 L542,74 L560,74 L560,92 L560,130 Z"/>
+    <g fill="#E0A33E" opacity="0.55">
+      <rect x="128" y="50" width="5" height="6"/><rect x="138" y="62" width="5" height="6"/>
+      <rect x="158" y="52" width="5" height="6"/><rect x="252" y="46" width="5" height="6"/>
+      <rect x="270" y="58" width="5" height="6"/><rect x="366" y="58" width="5" height="6"/>
+      <rect x="386" y="64" width="5" height="6"/><rect x="478" y="60" width="5" height="6"/>
+      <rect x="72" y="68" width="5" height="6"/><rect x="208" y="74" width="5" height="6"/>
+    </g>
+  </svg>
+</div>
+
+<div class="huelle">
+  <!-- Header (erst ab Start sichtbar) -->
+  <header class="kopf" id="kopf" hidden>
+    <div class="kopf-zeile">
+      <div class="kopf-titel">Die <b>Mörderjagd</b></div>
+      <div class="fortschritt-zahl" id="fortschrittZahl">Verdächtige: 8</div>
+    </div>
+    <div class="tracker" id="tracker" aria-label="Verdächtige" role="button" tabindex="0"></div>
+    <span class="kopf-akte">Tippen für Ermittlungsakte</span>
+  </header>
+
+  <main id="buehne"></main>
+
+  <div class="fuss">
+    <button class="fuss-link" id="elternBtn">· Eltern-Modus ·</button>
+  </div>
+</div>
+
+<canvas class="konfetti" id="konfetti" hidden></canvas>
+
+<button class="theme-toggle" id="themaBtn" aria-label="Hell- oder Dunkelmodus umschalten" title="Hell / Dunkel">☀</button>
+
+<script>
+"use strict";
+/* ============================================================
+   DIE MÖRDERJAGD – Krimi-Schnitzeljagd
+   Single-File · keine Pflicht-Abhängigkeiten (Schriften via CDN, mit Fallback)
+
+   >>> HIER ANPASSEN <<<  ------------------------------------ */
+const CONFIG = {
+  geburtstagskind: "Sofia",                 // Name fürs Intro & die Huckepack-Aufgabe
+  opfer:           "Konstantin von Auffberg", // Das (fiktive) Mordopfer
+  elternPasswort:  "eltern",               // Zugang zum Eltern-Modus (Fußzeile)
+  gpsRadiusMeter:  40,                      // Ab dieser Nähe (in Metern) gilt ein GPS-Ziel als erreicht
+  finaleSchatzHinweis:                      // Belohnung am Ende (Kuchen / Geschenke …)
+    "Eure Belohnung wartet am <b>Wöhrseebad</b> – dort stehen Kuchen, kühle Getränke und Geschenke bereit. Auf zum See!",
+  // Die vier GPS-Ziele unten sind NÄHERUNGSWERTE. Am einfachsten:
+  // Vor Ort den Eltern-Modus öffnen und je Schauplatz „Position speichern".
+};
+/* ----------------------------------------------------------- */
+
+/* Die acht Verdächtigen. taeterId = der/die wahre Täter:in. */
+const TAETER_ID = 3;   // Theo Brandt
+const SUSPECTS = [
+  { kurz:"Sturm",   name:"Viktoria Sturm",  rolle:"Geschäftspartnerin",   merkmal:"Rechtshänderin · stritt mit dem Opfer ums Geld" },
+  { kurz:"Lacroix", name:"Henri Lacroix",   rolle:"Küchenchef",           merkmal:"Rechtshänder · stand am Abend in der Küche" },
+  { kurz:"Velden",  name:"Dr. Mara Velden", rolle:"Hausärztin",           merkmal:"Linkshänderin · trägt schwarze Stiefel" },
+  { kurz:"Brandt",  name:"Theo Brandt",     rolle:"Neffe & Alleinerbe",   merkmal:"Linkshänder · jung, sportlich · rote Sneaker" },
+  { kurz:"Cordes",  name:"Isabel Cordes",   rolle:"Sängerin",             merkmal:"Rechtshänderin · trat am Abend auf der Bühne auf" },
+  { kurz:"Pohl",    name:"Sven Pohl",       rolle:"Chauffeur",            merkmal:"Linkshänder · war mit dem Wagen unterwegs" },
+  { kurz:"Falk",    name:"Ada Falk",        rolle:"Journalistin",         merkmal:"Rechtshänderin · recherchierte gegen das Opfer" },
+  { kurz:"Marek",   name:"Bruno Marek",     rolle:"Gärtner",              merkmal:"Linkshänder · kräftig gebaut, kein Kletterer" },
+];
+
+/* Stationen = Ermittlungsschritte. Jede gelöste Aufgabe liefert ein Indiz.
+   raus: Liste der Verdächtigen-Indizes, die dieses Indiz ausschließt (leer = nur Bestätigung). */
+const STATIONS = [
+  {
+    typ:"koepfchen", akzent:"--violett", badge:"Tatort-Notiz", titel:"Der erste Eintrag",
+    text:["Im Notizbuch des Kommissars steckt ein Rätsel – knackt es, dann ist die Akte für euch geöffnet.",
+          "„Je mehr du davon wegnimmst, desto <i>größer</i> wird es.“ – Was ist gemeint?"],
+    eingabe:"text", platzhalter:"Ein Wort …",
+    loesungen:["loch","das loch","ein loch","löcher","loecher"],
+    hinweise:["Es wird nicht durch Hinzufügen größer – sondern durch Wegnehmen.",
+              "Denk an einen Spaten und an weiche Erde."],
+    indizKurz:"Tatzeit gesichert",
+    indiz:"Akte offen. Erster Fakt: Die Tat geschah um <b>genau 21:00 Uhr</b> – mitten im Galadinner. Merkt euch die Uhrzeit; sie entlarvt falsche Alibis.",
+    raus:[]
+  },
+  {
+    typ:"koepfchen", akzent:"--violett", badge:"Geheimcode", titel:"Die verschlüsselte Notiz",
+    text:["Auf dem Schreibtisch des Opfers liegt ein Zettel in Cäsars Geheimschrift: jeder Buchstabe ist um <b>3 Stellen nach hinten</b> verschoben (A&nbsp;→&nbsp;D, B&nbsp;→&nbsp;E …).",
+          "Verschiebt sie wieder zurück:",
+          "<span class='code-zeile'>W H V W D P H Q W</span>"],
+    eingabe:"text", platzhalter:"Das entschlüsselte Wort …",
+    loesungen:["testament","das testament"],
+    hinweise:["W wird zu T, H wird zu E … immer 3 Schritte im Alphabet zurück.",
+              "Es ist das Schriftstück, in dem steht, wer erbt."],
+    indizKurz:"Motiv: das Erbe",
+    indiz:"Entschlüsselt: <b>TESTAMENT</b>. Darin steht: Das gesamte Vermögen geht an einen einzigen Menschen – den <b>Neffen</b>. Ein starkes Motiv. Behaltet ihn im Auge.",
+    raus:[]
+  },
+  {
+    typ:"gps", akzent:"--salzach", badge:"Schauplatz 1", titel:"Zur ersten Kreuzung",
+    text:["Los geht die Ermittlung im Freien. Die erste Spur führt zu einer bestimmten Kreuzung – doch welche ist gemeint?",
+          "Löst den Hinweis, dann schaltet sich die Navigation frei."],
+    ziel:{lat:48.17193, lng:12.83048, name:"Engel-Kreuzung"},
+    auswahl:{
+      frage:"Zu welcher Kreuzung führt die Spur?",
+      hinweis:"Eine himmlische Kreuzung mit Kirche.",
+      optionen:["Gott-Straße","Heiligen-Platz","Engel-Kreuzung"],
+      richtig:"Engel-Kreuzung"
+    },
+    indizKurz:"Isabel Cordes hat ein Alibi",
+    indiz:"An der <b>Engel-Kreuzung</b> (Robert-Koch-Straße / Marktler Straße) wartet die Zeugin: <b>Isabel Cordes</b> stand um 21:00 Uhr live auf der Bühne und sang – über 300 Gäste haben sie gesehen. Unmöglich die Täterin.",
+    raus:[4]
+  },
+  {
+    typ:"zahlen", akzent:"--gold", badge:"Spurensicherung", titel:"Der Küchen-Beleg",
+    text:["Henri Lacroix schwört, er habe das ganze Dinner über in der Küche gestanden. Rechnet nach:",
+          "Das Galadinner begann um <b>20:00 Uhr</b> und dauerte <b>1,7 Stunden</b>. Um wie viel Uhr war es zu Ende?",
+          "<span class='kursiv'>Achtung: 0,7 Stunden sind nicht 70 Minuten. Antwort als vier Ziffern, z. B. 2135.</span>"],
+    eingabe:"text", platzhalter:"HHMM …",
+    loesungen:["2142","21:42","21.42","21 42","2142 uhr"],
+    hinweise:["1 Stunde = 60 Minuten. Wie viele Minuten sind 0,7 Stunden? Rechnet 0,7 × 60.",
+              "0,7 × 60 = 42 Minuten. Also 20:00 + 1 Stunde und 42 Minuten."],
+    indizKurz:"Henri Lacroix hat ein Alibi",
+    indiz:"Das Dinner endete um <b>21:42 Uhr</b> – Henri stand also durchgehend bis 21:42 in der Küche, quer über die Tatzeit 21:00 hinweg. Drei Kellner bestätigen es. Sein Alibi hält: <b>Henri Lacroix</b> fällt raus.",
+    raus:[1]
+  },
+  {
+    typ:"reihenfolge", akzent:"--violett", badge:"Denksport", titel:"Vier Liter am Brunnen",
+    text:["Am Brunnen findet ihr zwei Krüge ohne Maßeinteilung: einen fasst <b>3 Liter</b>, einer <b>5 Liter</b>. Wasser schöpft ihr aus dem Brunnen.",
+          "Aufgabe: Wie messt ihr <b>genau 4 Liter</b> ab? Bringt die Schritte mit ▲ und ▼ in die richtige Reihenfolge – dann prüfen."],
+    eingabe:"reihenfolge",
+    schritte:[
+      "Fülle den 5-Liter-Krug am Brunnen randvoll.",
+      "Gieße daraus den 3-Liter-Krug voll – im 5er bleiben 2 Liter.",
+      "Leere den 3-Liter-Krug zurück in den Brunnen.",
+      "Schütte die 2 Liter aus dem 5er in den leeren 3er.",
+      "Fülle den 5-Liter-Krug erneut randvoll.",
+      "Gieße aus dem 5er in den 3er nach – es passt nur noch 1 Liter. Im 5er bleiben genau 4 Liter."
+    ],
+    start:[4,1,5,0,3,2],
+    hinweise:["Der 5er muss am Ende die 4 Liter enthalten. Fangt damit an, ihn zu füllen.",
+              "Nachdem 2 Liter im 3er stehen und der 5er neu voll ist: In den 3er passt nur noch 1 Liter – 5 − 1 = 4."],
+    indizKurz:"Sven Pohl hat ein Alibi",
+    indiz:"Reihenfolge geknackt – so ordnet auch der Kommissar die Zeitleiste des Abends. Sie zeigt: <b>Sven Pohls</b> Tankbeleg ist um <b>21:07 Uhr</b> gestempelt, an einer Tankstelle 8&nbsp;km entfernt. Er kann es nicht gewesen sein.",
+    raus:[5]
+  },
+  {
+    typ:"bewegung", akzent:"--koralle", badge:"Rekonstruktion", titel:"Der Sitzkreis",
+    text:["Wie kam der Täter unbemerkt an den Gästen vorbei? Nur als perfekt eingespieltes Team. Beweist euren Teamgeist:",
+          "Stellt euch <b>dicht hintereinander im Kreis</b> auf – alle schauen in dieselbe Richtung, jede/r blickt auf den Rücken des Vordermanns.",
+          "Auf ein gemeinsames Kommando setzt sich <b>alle gleichzeitig</b> langsam hin, sodass jede/r auf den Knien des Hintermanns landet. Haltet diesen lebenden Stuhlkreis <b>fünf Sekunden</b>."],
+    eingabe:"erledigt",
+    hinweise:["Rückt eng zusammen, bevor ihr euch setzt – je kleiner der Kreis, desto stabiler.",
+              "Setzt euch wirklich gleichzeitig und langsam auf ein Kommando. Wer zu früh geht, bringt alle zu Fall."],
+    indizKurz:"Fenster von außen aufgehebelt",
+    indiz:"Teamwork wie bei einem Einbruch. Passend dazu die nächste Erkenntnis: Das Fenster des Arbeitszimmers wurde <b>von außen aufgehebelt</b>. Der Täter kam nicht durchs Haus – sondern über die Fassade.",
+    raus:[]
+  },
+  {
+    typ:"koepfchen", akzent:"--violett", badge:"Indiz", titel:"Abdrücke am Brieföffner",
+    text:["Die Tatwaffe – ein schwerer Brieföffner – trägt Fingerabdrücke. Doch zuerst eine Zahlenreihe, die das Labor euch funkt. Welche Zahl kommt als Nächstes?",
+          "<span class='code-zeile'>2 · 3 · 5 · 8 · 12 · 17 · ?</span>"],
+    eingabe:"text", platzhalter:"Die nächste Zahl …",
+    loesungen:["23"],
+    hinweise:["Schaut euch die Abstände zwischen zwei Zahlen an.",
+              "Die Abstände wachsen: +1, +2, +3, +4, +5 … und jetzt?"],
+    indizKurz:"Täter ist Linkshänder",
+    indiz:"Code 23 stimmt – Laborbericht entsperrt: Die Abdrücke stammen von der <b>linken Hand</b>. Der Täter ist <b>Linkshänder</b>. Alle Rechtshänder unter den Verdächtigen scheiden aus.",
+    raus:[0,1,4,6]
+  },
+  {
+    typ:"gps", akzent:"--salzach", badge:"Schauplatz 2", titel:"Zum Bürgerhaus",
+    text:["Nächstes Ziel: das <b>Bürgerhaus</b>. Für den ganzen Weg dorthin gilt eine Team-Aufgabe:",
+          `Tragt <b>${CONFIG.geburtstagskind}</b> auf dem gesamten Weg zum Bürgerhaus abwechselnd <b>Huckepack</b> – jede/r ist mindestens einmal dran, niemand drückt sich. Folgt dabei der Entfernungsanzeige.`],
+    ziel:{lat:48.169142, lng:12.830657, name:"Bürgerhaus"},
+    ankunftAufgabe:{
+      titel:"Stärkung",
+      text:["Ihr habt euch eine Pause verdient.",
+            "Holt euch alle ein <b>Eis beim Laurini</b> – erst dann rückt der Zeuge seine Beobachtung heraus."],
+      knopf:"Eis geholt – weiter"
+    },
+    indizKurz:"Tatzeit bestätigt",
+    indiz:"Der Eisverkäufer beim <b>Laurini</b> erinnert sich: Kurz vor 21:00 Uhr sah er eine dunkel gekleidete Gestalt Richtung Villa hasten. Die <b>Tatzeit 21:00 Uhr</b> steht damit fest – prüft jedes Alibi genau an dieser Uhrzeit.",
+    raus:[]
+  },
+  {
+    typ:"gps", akzent:"--salzach", badge:"Schauplatz 3", titel:"Zum Aussichtspunkt Schwammerl",
+    text:["Steigt hinauf zum Aussichtspunkt <b>„Schwammerl“</b> – von dort blickt ihr auf die ganze Villa und ihre Fassade.",
+          "Folgt der Anzeige nach oben."],
+    ziel:{lat:48.16479, lng:12.83121, name:"Aussichtspunkt Schwammerl"},
+    indizKurz:"Bruno Marek fällt raus",
+    indiz:"Vom Schwammerl seht ihr genau die Fassade, die der Täter hochkletterte – flink und leichtfüßig. Das schafft nur jemand Junges, Sportliches. Der kräftig gebaute Gärtner <b>Bruno Marek</b> ist kein Kletterer und scheidet aus.",
+    raus:[7]
+  },
+  {
+    typ:"bewegung", akzent:"--koralle", badge:"Spurensicherung", titel:"Die Faser am Fenstergriff",
+    text:["Spurensicherung verlangt ruhige Hände und volle Konzentration. Jede/r macht es einmal vor:",
+          "Die <b>eine Hand</b> reibt kreisend über den Bauch, die <b>andere</b> klopft gleichzeitig auf den Kopf.",
+          "Nach etwa 10&nbsp;Sekunden die Bewegungen <b>tauschen</b>. Erst wenn es alle geschafft haben, geht es weiter."],
+    eingabe:"erledigt",
+    hinweise:["Fangt langsam an – erst eine Bewegung sicher beherrschen, dann die zweite dazunehmen.",
+              "Beim Tauschen hilft ein kurzes „Stopp“, einmal schütteln, neu starten."],
+    indizKurz:"Rote Schuhfaser",
+    indiz:"Ruhige Hände zahlen sich aus: Am Fenstergriff klebt eine <b>rote Schuhfaser</b>. Schaut in eure Akte – nur eine einzige Person trägt <b>rote Sneaker</b>. Alle mit anderen Schuhen fallen raus.",
+    raus:[0,1,2,4,5,6,7]
+  },
+  {
+    typ:"gps", akzent:"--salzach", badge:"Schauplatz 4", titel:"Zum Burgcafé",
+    text:["Letzter Weg: zum <b>Burgcafé</b>. Dort haben sich alle Verdächtigen zur Befragung versammelt.",
+          "Folgt der Anzeige."],
+    ziel:{lat:48.15772, lng:12.83032, name:"Burgcafé"},
+    indizKurz:"Alle versammelt",
+    indiz:"Im Burgcafé sitzen die Verdächtigen. Ihr habt jedes Alibi geprüft und jede Spur verfolgt – und nur eine einzige Person bleibt ohne Ausrede. Zeit für die Anklage.",
+    raus:[]
+  },
+  {
+    typ:"anklage", akzent:"--gold", badge:"Die Anklage", titel:"Wer war der Mörder?",
+    text:["Alle Indizien liegen vor. Nur noch eine Person bleibt übrig.",
+          "Tippt oben auf die Verdächtigen-Leiste, prüft noch einmal die Akte – und nennt dann den Namen des Mörders."],
+    eingabe:"text", platzhalter:"Name des Mörders …",
+    loesungen:["theo","brandt","theo brandt","der neffe","neffe","theobrandt"],
+    hinweise:["Wer ist nach allen Indizien als Einziger nicht ausgeschlossen?",
+              "Linkshänder, jung und sportlich, rote Sneaker – und er erbt das gesamte Vermögen."],
+    indizKurz:"Fall gelöst",
+    indiz:"Richtig. Der Fall ist gelöst.",
+    raus:[],
+    anklage:true
+  }
+];
+
+/* ============================================================  Zustand & Speicher  */
+const SPEICHER_KEY = "moerderjagd_v2";
+let zustand = lade();
+let reihenLauf = {};   // idx -> aktuelle Reihenfolge (Laufzeit, nicht gespeichert)
+
+function frischerZustand(){
+  return { gestartet:false, aktuell:0, geloest:[], hinweise:{}, eigeneZiele:{}, auswahl:{} };
+}
+function lade(){
+  try{
+    const r = localStorage.getItem(SPEICHER_KEY);
+    if(r){ const z = JSON.parse(r); if(z && typeof z.aktuell==="number") return Object.assign(frischerZustand(), z); }
+  }catch(e){}
+  return frischerZustand();
+}
+function speichern(){
+  try{ localStorage.setItem(SPEICHER_KEY, JSON.stringify(zustand)); }catch(e){}
+}
+
+/* ============================================================  Helfer  */
+const $ = (id)=>document.getElementById(id);
+const buehne = $("buehne");
+
+function normalisiere(s){
+  return (s||"").toString().trim().toLowerCase()
+    .replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue")
+    .replace(/[.\,!?\-:]/g,"").replace(/\s+/g," ");
+}
+function istRichtig(station, eingabe){
+  const e = normalisiere(eingabe);
+  if(!e) return false;
+  return station.loesungen.some(l=> normalisiere(l)===e );
+}
+function zielVon(idx){
+  const eig = zustand.eigeneZiele[idx];
+  if(eig) return {lat:eig.lat, lng:eig.lng, name:STATIONS[idx].ziel.name, eigen:true};
+  return Object.assign({eigen:false}, STATIONS[idx].ziel);
+}
+
+/* Welche Verdächtigen sind anhand der bisher gelösten Stationen ausgeschlossen? */
+function ausgeschlossen(){
+  const set = new Set();
+  zustand.geloest.forEach(i=>{ if(STATIONS[i]) (STATIONS[i].raus || []).forEach(v=>set.add(v)); });
+  return set;
+}
+function uebrige(){
+  const raus = ausgeschlossen();
+  const list=[];
+  for(let i=0;i<SUSPECTS.length;i++){ if(!raus.has(i)) list.push(i); }
+  return list;
+}
+/* Neu (durch diese Station) ausgeschlossen – ohne die bereits vorher ausgeschlossenen */
+function neuAusgeschlossen(idx){
+  const s=STATIONS[idx];
+  const vorher=new Set();
+  zustand.geloest.forEach(i=>{ if(i!==idx && STATIONS[i]) (STATIONS[i].raus||[]).forEach(v=>vorher.add(v)); });
+  return (s.raus||[]).filter(v=>!vorher.has(v));
+}
+
+/* Entfernung (Haversine) in Metern */
+function distanzM(a,b,c,d){
+  const R=6371000, t=Math.PI/180;
+  const dLat=(c-a)*t, dLng=(d-b)*t;
+  const x=Math.sin(dLat/2)**2 + Math.cos(a*t)*Math.cos(c*t)*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.min(1,Math.sqrt(x)));
+}
+function himmelsrichtung(a,b,c,d){
+  const t=Math.PI/180;
+  const y=Math.sin((d-b)*t)*Math.cos(c*t);
+  const x=Math.cos(a*t)*Math.sin(c*t)-Math.sin(a*t)*Math.cos(c*t)*Math.cos((d-b)*t);
+  let br=(Math.atan2(y,x)/t+360)%360;
+  const namen=["Norden","Nordosten","Osten","Südosten","Süden","Südwesten","Westen","Nordwesten"];
+  return namen[Math.round(br/45)%8];
+}
+function formatM(m){
+  if(m>=1000) return (m/1000).toFixed(1).replace(".",",")+" km";
+  return Math.round(m)+" m";
+}
+
+/* ============================================================  Header / Verdächtigen-Leiste  */
+function zeichneTracker(){
+  const t = $("tracker"); t.innerHTML="";
+  const raus = ausgeschlossen();
+  const rest = uebrige();
+  const alleGeloest = zustand.geloest.length>=STATIONS.length;
+  for(let i=0;i<SUSPECTS.length;i++){
+    const chip=document.createElement("div");
+    chip.className="vchip";
+    chip.dataset.s=i;
+    chip.textContent=SUSPECTS[i].kurz;
+    if(raus.has(i)) chip.classList.add("raus");
+    // Den Täter erst ganz am Ende (Anklage / Finale) golden enthüllen
+    if(rest.length===1 && rest[0]===i && (alleGeloest || zustand.aktuell>=STATIONS.length-1)) chip.classList.add("taeter");
+    t.appendChild(chip);
+  }
+  $("fortschrittZahl").textContent = (zustand.geloest.length>=STATIONS.length)
+    ? "Fall gelöst" : ("Verdächtige: "+rest.length);
+}
+function markiereRaus(idx){
+  const neu = (STATIONS[idx].raus||[]);
+  const chips = $("tracker").children;
+  neu.forEach(s=>{ if(chips[s]) chips[s].classList.add("frisch"); });
+}
+
+/* ============================================================  Rendern  */
+function render(){
+  zeichneTracker();
+  if(!zustand.gestartet){ renderIntro(); return; }
+  $("kopf").hidden=false;
+  const idx=zustand.aktuell;
+  if(idx>=STATIONS.length){ renderFinale(); return; }
+  renderStation(idx);
+}
+
+function renderIntro(){
+  $("kopf").hidden=true;
+  let lineup="";
+  SUSPECTS.forEach(s=>{
+    lineup+=`<div class="verd-karte">
+      <div class="vk-avatar">${escapeHtml(s.kurz.slice(0,2)).toUpperCase()}</div>
+      <div class="vk-text">
+        <div class="vk-name">${escapeHtml(s.name)}</div>
+        <div class="vk-rolle">${escapeHtml(s.rolle)}</div>
+        <div class="vk-merkmal">${escapeHtml(s.merkmal)}</div>
+      </div>
+    </div>`;
+  });
+  buehne.innerHTML = `
+    <section class="intro">
+      <div class="augenbraue">Vertrauliche Ermittlungsakte</div>
+      <h1>Die<span class="z2">Mörderjagd</span></h1>
+      <p class="unter">Ein Kriminalfall zum Selbstlösen.</p>
+      <p class="wer">für ${escapeHtml(CONFIG.geburtstagskind)}s 14. Geburtstag</p>
+
+      <div class="intro-narr">
+        <div class="akten-kopf">Akte · Der Fall ${escapeHtml(CONFIG.opfer)}</div>
+        Beim Sommer-Galadinner wird der Gastgeber <b>${escapeHtml(CONFIG.opfer)}</b> um Punkt 21:00 Uhr
+        leblos in seinem Arbeitszimmer gefunden – das Fenster von außen aufgebrochen. Acht Gäste hatten
+        ein Motiv. Einer von ihnen ist der Mörder.<br><br>
+        Ihr seid die Ermittler. Löst die Aufgaben der Reihe nach. Jede liefert ein <b>Indiz</b>, das
+        Verdächtige ausschließt – bis nur noch eine Person übrig bleibt. Dann nennt ihr den Namen des Täters.
+      </div>
+
+      <div class="intro-abschnitt">
+        <h3>Die acht Verdächtigen</h3>
+        <div class="verd-liste">${lineup}</div>
+      </div>
+
+      <div class="intro-meta">
+        <span>📍 Standort einschalten</span>
+        <span>🔋 Akku geladen?</span>
+        <span>🕵️ Augen auf</span>
+      </div>
+
+      <button class="btn voll" id="startBtn">Ermittlung starten</button>
+    </section>`;
+  $("startBtn").onclick = ()=>{ zustand.gestartet=true; zustand.aktuell=0; speichern(); render(); window.scrollTo(0,0); };
+}
+
+function renderStation(idx){
+  const s=STATIONS[idx];
+  const geloest = zustand.geloest.includes(idx);
+  const textHtml = s.text.map(t=>`<p class="st-text">${t}</p>`).join("");
+
+  let interaktion="";
+  if(s.typ==="gps"){
+    interaktion = gpsHtml(idx, geloest);
+  } else if(s.eingabe==="erledigt"){
+    interaktion = `<div class="eingabe-block">
+        <button class="btn akz voll" id="erledigtBtn" ${geloest?"disabled":""}>${geloest?"Erledigt ✓":"Erledigt"}</button>
+      </div>`;
+  } else if(s.eingabe==="reihenfolge"){
+    interaktion = geloest ? reiheGeloestHtml(idx) : reihenHtml(idx);
+  } else {
+    let extra="";
+    if(s.anklage){
+      const rest=uebrige();
+      extra = `<div class="anklage-hinweis">Noch im Rennen: ${rest.map(i=>"<b>"+escapeHtml(SUSPECTS[i].name)+"</b>").join(", ")}</div>`;
+    }
+    interaktion = `${extra}<div class="eingabe-block">
+        <div class="eingabe-reihe">
+          <input class="feld" id="antwortFeld" type="text" inputmode="${/HHMM|Ziffer|Zahl/i.test(s.platzhalter||"")?'numeric':'text'}"
+                 autocomplete="off" autocapitalize="off" placeholder="${s.platzhalter||'Antwort …'}" ${geloest?"disabled":""}>
+          <button class="btn akz btn-pruef" id="pruefBtn" ${geloest?"disabled":""}>${s.anklage?"Anklagen":"Prüfen"}</button>
+        </div>
+      </div>`;
+  }
+
+  const hinweiseHtml = renderHinweise(idx);
+  const erfolgHtml = geloest ? erfolgsBanner(idx) : "";
+
+  buehne.innerHTML = `
+    <section class="szene karte" style="--akzent:var(${s.akzent})">
+      <div class="badge-zeile">
+        <span class="badge">${s.badge}</span>
+        <span class="st-nr">Schritt ${String(idx+1).padStart(2,"0")} / ${STATIONS.length}</span>
+      </div>
+      <h2 class="st-titel">${s.titel}</h2>
+      ${textHtml}
+      <div id="interaktion">${interaktion}</div>
+      <div id="erfolgRaum">${erfolgHtml}</div>
+      ${geloest?"":hinweiseHtml}
+    </section>`;
+
+  verdrahteStation(idx);
+}
+
+function gpsHtml(idx, geloest){
+  const s=STATIONS[idx];
+  if(geloest){
+    return `<div class="gps-da"><div class="da-gross">Schauplatz erreicht ✓</div></div>`;
+  }
+  if(s.auswahl && !zustand.auswahl[idx]){ return raetselHtml(idx); }
+  const fix = s.auswahl ? `<div class="gps-ziel-fix">✓ Ziel: ${escapeHtml(s.auswahl.richtig)}</div>` : "";
+  return `
+    <div class="gps-box" id="gpsBox">
+      ${fix}
+      <div id="gpsAnzeige">
+        <div class="gps-status">Tippt auf „Navigation starten", um die Entfernung zum Schauplatz zu sehen.</div>
+        <button class="btn akz voll" id="gpsStartBtn" style="margin-top:14px">Navigation starten</button>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="h-btn" id="manuellBtn">Wir sind angekommen</button>
+    </div>`;
+}
+
+function raetselHtml(idx){
+  const a=STATIONS[idx].auswahl;
+  const opts=a.optionen.map(o=>`<button class="btn geist auswahl-opt" data-opt="${escapeHtml(o)}">${escapeHtml(o)}</button>`).join("");
+  return `<div class="gps-box">
+      <div class="raetsel-hinweis">${escapeHtml(a.frage)}<br><b>„${escapeHtml(a.hinweis)}"</b></div>
+      <div class="auswahl-liste">${opts}</div>
+    </div>`;
+}
+
+/* Reihenfolge-Puzzle */
+function reihenHtml(idx){
+  const s=STATIONS[idx];
+  if(!reihenLauf[idx]) reihenLauf[idx] = (s.start || s.schritte.map((_,i)=>i)).slice();
+  const ord=reihenLauf[idx];
+  let cards="";
+  ord.forEach((stepIdx,pos)=>{
+    cards+=`<div class="reihe-karte" data-step="${stepIdx}">
+      <div class="reihe-nr">${pos+1}</div>
+      <div class="reihe-text">${s.schritte[stepIdx]}</div>
+      <div class="reihe-move">
+        <button data-move="up" data-pos="${pos}" ${pos===0?"disabled":""} aria-label="nach oben">▲</button>
+        <button data-move="down" data-pos="${pos}" ${pos===ord.length-1?"disabled":""} aria-label="nach unten">▼</button>
+      </div>
+    </div>`;
+  });
+  return `<div class="reihe-liste" id="reiheListe">${cards}</div>
+    <div class="eingabe-block"><button class="btn akz voll" id="pruefBtn">Reihenfolge prüfen</button></div>`;
+}
+function reiheGeloestHtml(idx){
+  const s=STATIONS[idx];
+  let cards="";
+  s.schritte.forEach((t,i)=>{
+    cards+=`<div class="reihe-karte" style="opacity:.9"><div class="reihe-nr">${i+1}</div><div class="reihe-text">${t}</div></div>`;
+  });
+  return `<div class="reihe-liste">${cards}</div>`;
+}
+function zeichneReihe(idx){
+  const inter=$("interaktion"); if(!inter) return;
+  inter.innerHTML = reihenHtml(idx);
+  wireReihe(idx);
+}
+function wireReihe(idx){
+  const inter=$("interaktion"); if(!inter) return;
+  inter.querySelectorAll("[data-move]").forEach(b=>{
+    b.onclick=()=>{
+      const pos=parseInt(b.dataset.pos,10);
+      const dir=b.dataset.move;
+      const ord=reihenLauf[idx];
+      const j = dir==="up"?pos-1:pos+1;
+      if(j<0||j>=ord.length) return;
+      const tmp=ord[pos]; ord[pos]=ord[j]; ord[j]=tmp;
+      zeichneReihe(idx);
+    };
+  });
+  const pb=$("pruefBtn");
+  if(pb) pb.onclick=()=>{
+    const ord=reihenLauf[idx];
+    if(ord.every((v,i)=>v===i)) loese(idx);
+    else zeigeToast("Noch nicht die richtige Reihenfolge – verschiebt die Schritte mit ▲ und ▼.");
+  };
+}
+
+function renderHinweise(idx){
+  const s=STATIONS[idx];
+  if(!s.hinweise || !s.hinweise.length) return "";
+  const benutzt = zustand.hinweise[idx]||0;
+  let knoepfe="";
+  for(let i=0;i<s.hinweise.length;i++){
+    const frei = i<=benutzt; // Hinweis 2 erst nach Hinweis 1
+    knoepfe += `<button class="h-btn" data-h="${i}" ${i<benutzt?"disabled":""} ${!frei?"disabled":""}>Hinweis ${i+1}</button>`;
+  }
+  let texte="";
+  for(let i=0;i<benutzt;i++){
+    texte += `<div class="h-text"><b>Hinweis ${i+1}:</b> ${s.hinweise[i]}</div>`;
+  }
+  return `<div class="hinweise" id="hinweisRaum">
+      <div class="hinweis-knoepfe">${knoepfe}</div>
+      <div id="hinweisTexte">${texte}</div>
+    </div>`;
+}
+
+function erfolgsBanner(idx){
+  const s=STATIONS[idx];
+  const neu = neuAusgeschlossen(idx);
+  let rausHtml="";
+  if(neu.length){
+    const namen = neu.map(i=>SUSPECTS[i].name).join(", ");
+    rausHtml = `<div class="e-raus">Ausgeschlossen: <b>${escapeHtml(namen)}</b></div>`;
+  }
+  let bleibtHtml="";
+  if(!s.anklage){
+    const rest=uebrige();
+    if(rest.length>1) bleibtHtml = `<div class="e-bleibt">Noch verdächtig: ${rest.length}</div>`;
+    else if(rest.length===1) bleibtHtml = `<div class="e-bleibt">Nur noch eine Person übrig …</div>`;
+  }
+  const weiterText = idx+1<STATIONS.length
+    ? (STATIONS[idx+1].anklage ? "Zur Anklage" : "Nächster Schritt")
+    : "Zur Auflösung";
+  return `<div class="erfolg">
+      <div class="e-zeile">✓ ${s.anklage?"Überführt":"Indiz gesichert"} — ${escapeHtml(s.indizKurz)}</div>
+      <div class="e-text">${s.indiz}</div>
+      ${rausHtml}${bleibtHtml}
+      <button class="btn voll" id="weiterBtn" style="margin-top:14px">${weiterText}</button>
+    </div>`;
+}
+
+/* ============================================================  Verdrahtung  */
+function verdrahteStation(idx){
+  const s=STATIONS[idx];
+
+  // Hinweise
+  const hr = $("hinweisRaum");
+  if(hr) verdrahteHinweise(idx);
+
+  if(s.typ==="gps"){
+    if(s.auswahl && !zustand.auswahl[idx]){
+      buehne.querySelectorAll(".auswahl-opt").forEach(b=>{
+        b.onclick=()=>{
+          if(b.dataset.opt===s.auswahl.richtig){
+            zustand.auswahl[idx]=true; speichern();
+            const inter=$("interaktion"); if(inter) inter.innerHTML=gpsHtml(idx,false);
+            const sb=$("gpsStartBtn"); if(sb) sb.onclick=()=>starteGps(idx);
+            const mb=$("manuellBtn"); if(mb) mb.onclick=()=>gpsAngekommen(idx);
+            zeigeToast("Richtig – die Engel-Kreuzung! Die Navigation führt euch hin.");
+          } else {
+            b.classList.add("falsch");
+            zeigeToast("Fast – aber welche der drei ist wirklich eine Kreuzung?");
+          }
+        };
+      });
+      return;
+    }
+    const startBtn=$("gpsStartBtn");
+    if(startBtn) startBtn.onclick=()=>starteGps(idx);
+    const man=$("manuellBtn");
+    if(man) man.onclick=()=>{ gpsAngekommen(idx); };
+    return;
+  }
+  if(s.eingabe==="erledigt"){
+    const eb=$("erledigtBtn");
+    if(eb) eb.onclick=()=>loese(idx);
+    return;
+  }
+  if(s.eingabe==="reihenfolge"){
+    if(!zustand.geloest.includes(idx)) wireReihe(idx);
+    return;
+  }
+
+  const feld=$("antwortFeld"), pruef=$("pruefBtn");
+  if(pruef) pruef.onclick=()=>versuche(idx);
+  if(feld){
+    feld.focus();
+    feld.addEventListener("keydown",e=>{ if(e.key==="Enter") versuche(idx); });
+  }
+}
+function verdrahteHinweise(idx){
+  const hr=$("hinweisRaum"); if(!hr) return;
+  hr.querySelectorAll(".h-btn").forEach(b=>{
+    b.onclick=()=>{
+      const i=parseInt(b.dataset.h,10);
+      const benutzt=zustand.hinweise[idx]||0;
+      if(i>benutzt) return;
+      zustand.hinweise[idx]=Math.max(benutzt,i+1); speichern();
+      const aktiv = zustand.geloest.includes(idx);
+      $("hinweisRaum").outerHTML = aktiv?"":renderHinweise(idx);
+      if(!aktiv) verdrahteHinweise(idx);
+    };
+  });
+}
+
+function versuche(idx){
+  const s=STATIONS[idx];
+  const feld=$("antwortFeld");
+  if(!feld) return;
+  if(istRichtig(s, feld.value)){ loese(idx); }
+  else {
+    feld.classList.remove("zittern"); void feld.offsetWidth; feld.classList.add("zittern");
+    zeigeToast(s.anklage ? "Diese Person hat ein Alibi. Schaut noch einmal in die Akte." : "Noch nicht richtig – probiert es nochmal oder nehmt einen Hinweis.");
+  }
+}
+
+/* ============================================================  Lösen  */
+function loese(idx){
+  if(!zustand.geloest.includes(idx)){ zustand.geloest.push(idx); speichern(); }
+  zeichneTracker();
+  markiereRaus(idx);
+
+  const inter=$("interaktion");
+  const s=STATIONS[idx];
+  if(inter){
+    if(s.typ==="gps") inter.innerHTML=`<div class="gps-da"><div class="da-gross">Schauplatz erreicht ✓</div></div>`;
+    else if(s.eingabe==="erledigt") inter.innerHTML=`<button class="btn akz voll" disabled>Erledigt ✓</button>`;
+    else if(s.eingabe==="reihenfolge") inter.innerHTML=reiheGeloestHtml(idx);
+    else {
+      const feld=$("antwortFeld"); if(feld){feld.disabled=true;} const pb=$("pruefBtn"); if(pb)pb.disabled=true;
+    }
+  }
+  const hr=$("hinweisRaum"); if(hr) hr.remove();
+  const er=$("erfolgRaum"); if(er){ er.innerHTML=erfolgsBanner(idx);
+    const wb=$("weiterBtn"); if(wb) wb.onclick=()=>weiter(idx);
+  }
+}
+
+function weiter(idx){
+  zustand.aktuell=idx+1; speichern(); render(); window.scrollTo(0,0);
+}
+
+/* ============================================================  GPS  */
+let gpsWatch=null, gpsLetzteDist=null;
+
+function gpsAufraeumen(){
+  if(gpsWatch!==null && navigator.geolocation){ navigator.geolocation.clearWatch(gpsWatch); }
+  gpsWatch=null; gpsLetzteDist=null;
+}
+
+function starteGps(idx){
+  const box=$("gpsAnzeige");
+  if(!("geolocation" in navigator)){
+    box.innerHTML=`<div class="gps-fehler">Dieses Gerät kann keinen Standort bestimmen. Nutzt unten „Wir sind angekommen", sobald ihr da seid.</div>`;
+    return;
+  }
+  box.innerHTML=`<div class="gps-status">Standort wird gesucht … bitte erlaubt den Zugriff.</div>`;
+  gpsAufraeumen();
+  gpsWatch=navigator.geolocation.watchPosition(
+    (pos)=>aktualisiereGps(idx,pos),
+    (err)=>gpsFehler(idx,err),
+    {enableHighAccuracy:true, maximumAge:2000, timeout:15000}
+  );
+}
+
+function aktualisiereGps(idx,pos){
+  if(!$("gpsAnzeige")) return;
+  const ziel=zielVon(idx);
+  const la=pos.coords.latitude, lo=pos.coords.longitude;
+  const d=distanzM(la,lo,ziel.lat,ziel.lng);
+  const radius=CONFIG.gpsRadiusMeter;
+
+  if(d<=radius){ gpsAngekommen(idx); return; }
+
+  const richtung=himmelsrichtung(la,lo,ziel.lat,ziel.lng);
+  let tempHtml="";
+  if(gpsLetzteDist!==null){
+    if(d < gpsLetzteDist-2) tempHtml=`<div class="gps-temp warm">↑ wärmer</div>`;
+    else if(d > gpsLetzteDist+2) tempHtml=`<div class="gps-temp kalt">↓ kälter</div>`;
+  }
+  gpsLetzteDist=d;
+
+  const proz=Math.max(2, Math.min(100, (1-(Math.min(d,600)/600))*100));
+  const genau = pos.coords.accuracy ? " · Genauigkeit ±"+Math.round(pos.coords.accuracy)+" m" : "";
+
+  $("gpsAnzeige").innerHTML=`
+    <div class="gps-dist">${d>=1000?formatM(d).split(" ")[0]:Math.round(d)}<span class="gps-einheit"> ${d>=1000?'km':'m'}</span></div>
+    <div class="gps-richtung">Richtung <b>${richtung}</b></div>
+    ${tempHtml}
+    <div class="gps-balken"><span style="width:${proz}%"></span></div>
+    <div class="gps-status">Noch ${formatM(d)} bis zum Schauplatz${genau}</div>`;
+}
+
+function gpsFehler(idx,err){
+  let txt="Standort konnte nicht ermittelt werden.";
+  if(err && err.code===1) txt="Der Standortzugriff wurde abgelehnt. Erlaubt ihn in den Einstellungen – oder nutzt „Wir sind angekommen“, wenn ihr da seid.";
+  else if(err && err.code===3) txt="Die Standortsuche dauert zu lange. Versucht es nochmal oder nutzt „Wir sind angekommen“.";
+  if(!$("gpsAnzeige")) return;
+  $("gpsAnzeige").innerHTML=`<div class="gps-fehler">${txt}</div>
+    <button class="btn akz voll" id="gpsStartBtn" style="margin-top:14px">Nochmal versuchen</button>`;
+  const b=$("gpsStartBtn"); if(b) b.onclick=()=>starteGps(idx);
+}
+
+function gpsAngekommen(idx){
+  gpsAufraeumen();
+  const s=STATIONS[idx];
+  if(s.ankunftAufgabe && !zustand.geloest.includes(idx)){ zeigeAnkunft(idx); }
+  else { loese(idx); }
+}
+
+function zeigeAnkunft(idx){
+  const a=STATIONS[idx].ankunftAufgabe;
+  const inter=$("interaktion"); if(!inter) return;
+  const txt=a.text.map(t=>`<p class="st-text" style="font-size:14.5px">${t}</p>`).join("");
+  inter.innerHTML=`
+    <div class="gps-da"><div class="da-gross">Schauplatz erreicht ✓</div></div>
+    <section class="karte" style="--akzent:var(--koralle);margin-top:14px">
+      <div class="badge-zeile"><span class="badge">Aufgabe vor Ort</span></div>
+      <h3 class="st-titel" style="font-size:21px">${a.titel}</h3>
+      ${txt}
+      <div class="eingabe-block"><button class="btn akz voll" id="ankunftBtn">${a.knopf||"Erledigt"}</button></div>
+    </section>`;
+  const b=$("ankunftBtn"); if(b) b.onclick=()=>loese(idx);
+}
+
+/* ============================================================  Finale / Auflösung  */
+function renderFinale(){
+  $("kopf").hidden=false;
+  zeichneTracker();
+  $("fortschrittZahl").textContent="Fall gelöst";
+  const t=SUSPECTS[TAETER_ID];
+  buehne.innerHTML=`
+    <section class="finale">
+      <div class="rolle">
+        <div class="siegel">Fall abgeschlossen</div>
+        <h2>Überführt!</h2>
+        <div class="taeter-name">${escapeHtml(t.name.toUpperCase())}</div>
+        <p class="aufl"><b>Das Motiv:</b> Als <b>Alleinerbe</b> wollte Theo Brandt nicht länger auf das Vermögen seines Onkels warten.</p>
+        <p class="aufl"><b>Der Tathergang:</b> Um 21:00 Uhr – während alle Gäste der Sängerin lauschten – hebelte er das Fenster des Arbeitszimmers von außen auf und kletterte flink die Fassade hinauf. Jung, sportlich, linkshändig.</p>
+        <p class="aufl"><b>Sein Fehler:</b> eine rote Faser seiner Sneaker am Fenstergriff – und Fingerabdrücke der linken Hand auf der Tatwaffe.</p>
+        <p class="schatz">${CONFIG.finaleSchatzHinweis}</p>
+      </div>
+      <button class="btn voll" id="nochmalBtn" style="margin-top:22px;max-width:440px">Neuen Fall starten</button>
+    </section>`;
+  $("nochmalBtn").onclick=()=>{
+    if(confirm("Den ganzen Fall zurücksetzen und von vorne beginnen?")){
+      zustand=frischerZustand(); reihenLauf={}; speichern(); render(); window.scrollTo(0,0);
+    }
+  };
+  konfettiRegen();
+}
+
+/* ============================================================  Konfetti  */
+function konfettiRegen(){
+  const c=$("konfetti"); if(!c) return;
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches) return;
+  c.hidden=false;
+  const ctx=c.getContext("2d");
+  if(!ctx){ c.hidden=true; return; }
+  const dpr=window.devicePixelRatio||1;
+  c.width=innerWidth*dpr; c.height=innerHeight*dpr; ctx.scale(dpr,dpr);
+  const farben=["#E0A33E","#F2C264","#36A8A0","#8E82DC","#E37A55","#ECE2CC"];
+  const teile=[];
+  for(let i=0;i<140;i++){
+    teile.push({x:Math.random()*innerWidth, y:-20-Math.random()*innerHeight*0.5,
+      r:4+Math.random()*5, vx:-1.5+Math.random()*3, vy:2+Math.random()*3.5,
+      rot:Math.random()*6.28, vr:-.2+Math.random()*.4, f:farben[i%farben.length]});
+  }
+  let t0=performance.now();
+  function frame(t){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    let lebt=false;
+    teile.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.04; p.rot+=p.vr;
+      if(p.y<innerHeight+30) lebt=true;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.f;
+      ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6); ctx.restore();
+    });
+    if(lebt && t-t0<6000) requestAnimationFrame(frame);
+    else { ctx.clearRect(0,0,innerWidth,innerHeight); c.hidden=true; }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ============================================================  Ermittlungsakte  */
+function oeffneAkte(){
+  const hg=document.createElement("div"); hg.className="modal-hg";
+  const raus=ausgeschlossen();
+  const rest=uebrige();
+  let verd="";
+  SUSPECTS.forEach((s,i)=>{
+    const ist = raus.has(i);
+    const taeter = (rest.length===1 && rest[0]===i && zustand.geloest.length>=STATIONS.length);
+    verd+=`<div class="verd-karte ${ist?'raus':''} ${taeter?'bleibt':''}">
+      <div class="vk-avatar">${escapeHtml(s.kurz.slice(0,2)).toUpperCase()}</div>
+      <div class="vk-text">
+        <div class="vk-name">${escapeHtml(s.name)}</div>
+        <div class="vk-rolle">${escapeHtml(s.rolle)}</div>
+        <div class="vk-merkmal">${escapeHtml(s.merkmal)}</div>
+      </div>
+    </div>`;
+  });
+  let indizien="";
+  const gel = zustand.geloest.filter(i=>STATIONS[i] && !STATIONS[i].anklage).sort((a,b)=>a-b);
+  if(gel.length){
+    gel.forEach((i,n)=>{
+      indizien+=`<div class="akte-indiz">
+        <div class="ai-nr">Indiz ${n+1} · ${escapeHtml(STATIONS[i].indizKurz)}</div>
+        <div class="ai-text">${STATIONS[i].indiz}</div>
+      </div>`;
+    });
+  } else {
+    indizien=`<p class="akte-leer">Noch keine Indizien gesichert.</p>`;
+  }
+  hg.innerHTML=`<div class="modal">
+    <h3>Ermittlungsakte</h3>
+    <p class="m-leise">Der Fall ${escapeHtml(CONFIG.opfer)}</p>
+    <div class="eltern-abschnitt" style="border-top:none;margin-top:4px;padding-top:0">
+      <h4>Verdächtige (${rest.length} übrig)</h4>
+      <div class="verd-liste">${verd}</div>
+    </div>
+    <div class="eltern-abschnitt">
+      <h4>Gesicherte Indizien</h4>
+      ${indizien}
+    </div>
+    <button class="btn geist voll" id="akteZu" style="margin-top:14px">Schließen</button>
+  </div>`;
+  document.body.appendChild(hg);
+  hg.addEventListener("click",e=>{ if(e.target===hg) hg.remove(); });
+  $("akteZu").onclick=()=>hg.remove();
+}
+
+/* ============================================================  Toast  */
+let toastTimer=null;
+function zeigeToast(txt){
+  let el=document.querySelector(".toast");
+  if(el) el.remove();
+  el=document.createElement("div"); el.className="toast"; el.textContent=txt;
+  document.body.appendChild(el);
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ if(el) el.remove(); }, 3600);
+}
+function escapeHtml(s){ return (s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
+
+/* ============================================================  Eltern-Modus  */
+$("elternBtn").onclick=()=>oeffneElternTor();
+$("tracker").addEventListener("click", oeffneAkte);
+$("tracker").addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); oeffneAkte(); } });
+
+function oeffneElternTor(){
+  const hg=document.createElement("div"); hg.className="modal-hg";
+  hg.innerHTML=`<div class="modal">
+    <h3>Eltern-Modus</h3>
+    <p class="m-leise">Geschützt – nur für die Vorbereitung gedacht.</p>
+    <div class="eltern-feld">
+      <input class="feld" id="pwFeld" type="password" placeholder="Passwort" autocomplete="off">
+      <button class="btn akz btn-pruef" id="pwBtn">Öffnen</button>
+    </div>
+    <button class="btn geist voll" id="ptZu">Schließen</button>
+  </div>`;
+  document.body.appendChild(hg);
+  hg.addEventListener("click",e=>{ if(e.target===hg) hg.remove(); });
+  $("ptZu").onclick=()=>hg.remove();
+  const pr=()=>{ if($("pwFeld").value===CONFIG.elternPasswort){ hg.remove(); zeigeElternPanel(); } else zeigeToast("Falsches Passwort."); };
+  $("pwBtn").onclick=pr;
+  $("pwFeld").addEventListener("keydown",e=>{if(e.key==="Enter")pr();});
+  $("pwFeld").focus();
+}
+
+function zeigeElternPanel(){
+  const hg=document.createElement("div"); hg.className="modal-hg";
+
+  // GPS-Schauplätze auflisten
+  let gpsHtml="";
+  STATIONS.forEach((s,i)=>{
+    if(s.typ==="gps"){
+      const ziel=zielVon(i);
+      const koord=`${ziel.lat.toFixed(5)}, ${ziel.lng.toFixed(5)}`;
+      gpsHtml+=`<div class="gps-zeile">
+        <div class="gz-name">${escapeHtml(STATIONS[i].ziel.name)}
+          <span class="gz-koord ${ziel.eigen?'gz-eigen':''}">${koord}${ziel.eigen?' · eigene Position':' · hinterlegt'}</span>
+        </div>
+        <button class="mini" data-cap="${i}">Position speichern</button>
+      </div>`;
+    }
+  });
+
+  // Sprung-Gitter
+  let gitter="";
+  for(let i=0;i<STATIONS.length;i++){
+    const aktiv = (i===zustand.aktuell && zustand.aktuell<STATIONS.length);
+    gitter+=`<button data-jump="${i}" class="${aktiv?'aktiv':''}">${String(i+1).padStart(2,'0')}</button>`;
+  }
+
+  hg.innerHTML=`<div class="modal">
+    <h3>Eltern-Modus</h3>
+    <p class="m-leise">Vorbereitung der Mörderjagd. Diese Einstellungen sehen die Kinder nicht.</p>
+
+    <div class="eltern-abschnitt">
+      <h4>Schauplätze festlegen (GPS)</h4>
+      <p class="m-leise" style="margin-bottom:12px">Geht zu jedem Ort und tippt dort „Position speichern". Die Jagd nutzt dann eure echten Koordinaten statt der Näherungswerte.</p>
+      ${gpsHtml||'<p class="m-leise">Keine GPS-Schauplätze.</p>'}
+    </div>
+
+    <div class="eltern-abschnitt">
+      <h4>Zu Schritt springen</h4>
+      <div class="sprung-gitter">${gitter}</div>
+    </div>
+
+    <div class="eltern-abschnitt">
+      <h4>Aktueller Schritt</h4>
+      <button class="btn akz voll" id="loeseAktuell">Aktuellen Schritt als gelöst markieren</button>
+      <p class="m-leise" style="margin-top:8px">Praktisch, wenn GPS streikt oder eine Aufgabe übersprungen werden soll.</p>
+    </div>
+
+    <div class="eltern-abschnitt">
+      <div class="reihe2">
+        <button class="btn geist" id="ptSchliessen">Schließen</button>
+        <button class="btn gefahr" id="ptReset">Alles zurücksetzen</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(hg);
+  hg.addEventListener("click",e=>{ if(e.target===hg) hg.remove(); });
+  $("ptSchliessen").onclick=()=>hg.remove();
+
+  // Position speichern
+  hg.querySelectorAll("[data-cap]").forEach(b=>{
+    b.onclick=()=>{
+      const i=parseInt(b.dataset.cap,10);
+      if(!("geolocation" in navigator)){ zeigeToast("Kein GPS verfügbar."); return; }
+      b.textContent="…suche"; b.disabled=true;
+      navigator.geolocation.getCurrentPosition(
+        (pos)=>{
+          zustand.eigeneZiele[i]={lat:pos.coords.latitude, lng:pos.coords.longitude};
+          speichern(); hg.remove(); zeigeToast("Position gespeichert: "+STATIONS[i].titel); zeigeElternPanel();
+        },
+        ()=>{ b.textContent="Fehler – nochmal"; b.disabled=false; zeigeToast("Standort nicht erhalten. Erlaubt den Zugriff."); },
+        {enableHighAccuracy:true, timeout:15000, maximumAge:0}
+      );
+    };
+  });
+
+  // Springen
+  hg.querySelectorAll("[data-jump]").forEach(b=>{
+    b.onclick=()=>{
+      const i=parseInt(b.dataset.jump,10);
+      zustand.gestartet=true; zustand.aktuell=i; gpsAufraeumen(); speichern(); hg.remove(); render(); window.scrollTo(0,0);
+    };
+  });
+
+  // Aktuellen lösen
+  $("loeseAktuell").onclick=()=>{
+    const i=zustand.aktuell;
+    if(i>=STATIONS.length){ zeigeToast("Schon am Ziel."); return; }
+    if(!zustand.geloest.includes(i)){ zustand.geloest.push(i); }
+    gpsAufraeumen(); speichern(); hg.remove();
+    render(); window.scrollTo(0,0);
+    zeigeToast("Schritt "+(i+1)+" als gelöst markiert.");
+  };
+
+  // Reset
+  $("ptReset").onclick=()=>{
+    if(confirm("Wirklich ALLES zurücksetzen? Fortschritt und gespeicherte Schauplätze gehen verloren.")){
+      zustand=frischerZustand(); reihenLauf={}; speichern(); hg.remove(); render(); window.scrollTo(0,0);
+    }
+  };
+}
+
+/* ============================================================  Hell-/Dunkelmodus  */
+const THEMA_KEY = "moerderjagd_thema";   // eigener Schlüssel -> übersteht Fall-Reset
+function ladeThema(){
+  try{ const t=localStorage.getItem(THEMA_KEY); if(t==="hell"||t==="dunkel") return t; }catch(e){}
+  return "dunkel";   // Standard bleibt das Noir-Dunkel
+}
+function setzeThema(t){
+  const hell = (t==="hell");
+  document.body.classList.toggle("hell", hell);
+  const btn=$("themaBtn");
+  if(btn){
+    btn.textContent = hell ? "☾" : "☀";
+    btn.setAttribute("aria-label", hell ? "Zum dunklen Modus wechseln" : "Zum hellen Modus wechseln");
+  }
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute("content", hell ? "#F5F0E6" : "#0E1422");
+  try{ localStorage.setItem(THEMA_KEY, hell?"hell":"dunkel"); }catch(e){}
+}
+function themaUmschalten(){ setzeThema(document.body.classList.contains("hell") ? "dunkel" : "hell"); }
+const themaBtnEl=$("themaBtn"); if(themaBtnEl) themaBtnEl.onclick=themaUmschalten;
+setzeThema(ladeThema());
+
+/* ============================================================  Start  */
+render();
+window.addEventListener("beforeunload", gpsAufraeumen);
+</script>
+</body>
+</html>
